@@ -4,7 +4,7 @@
   inputs =
     {
       nixos.url = "nixpkgs/nixos-unstable";
-      override.url = "nixpkgs";
+      latest.url = "nixpkgs";
       devos.url = "path:./lib"; # TODO: outfactor into separate repo
       devos.inputs = {
         nixpkgs.follows = "nixos";
@@ -34,21 +34,65 @@
     };
 
   outputs = inputs@{ self, devos, nixos, nur, ... }:
+
     devos.lib.mkFlake {
       inherit self inputs nixos;
-      hosts = ./hosts;
-      packages = import ./pkgs;
-      suites = import ./profiles/suites.nix;
-      extern = import ./extern;
-      overrides = import ./extern/overrides.nix;
-      overlays = ./overlays;
-      profiles = ./profiles;
-      userProfiles = ./users/profiles;
-      modules = import ./modules/module-list.nix;
-      userModules = import ./users/modules/module-list.nix;
-    } // {
-    defaultTemplate = self.templates.flk;
-    templates.flk.path = ./.;
-    templates.flk.description = "flk template";
-  };
+
+      channelsConfig = { allowUnfree = true; };
+
+      channels = {
+        nixos = {
+          overlays = [
+            ./overlays
+            pkgs.overlay
+            ./overrides.nix # from "latest" channel
+          ];
+          externalOverlays = [
+            nur.overlay
+          ];
+        };
+        latest = { };
+      };
+
+      os = {
+        hostDefaults = {
+          system = "x86_64-linux";
+          channelName = "nixos";
+          modules = ./modules;
+          externalModules = [
+            ci-agent.nixosModules.agent-profile
+            home.nixosModules.home-manager
+          ];
+          specialArgs = {
+            overrideModulesPath = "${override}/nixos/modules";
+            hardware = nixos-hardware.nixosModules;
+          };
+        };
+        hosts = ./hosts;
+        profiles = [ ./profiles ./users ];
+        suites = { profiles, users, ... }: with profiles; {
+          base = [ core users.nixos users.root ];
+        };
+      };
+
+      home = {
+        modules = ./users/modules;
+        externalModules = [
+        ];
+        profiles = [ ./users/profiles ];
+        suites = { profiles, ... }: with profiles; {
+          base = [ direnv git ];
+        };
+      };
+    }
+
+    //
+
+    {
+      defaultTemplate = self.templates.flk;
+      templates.flk.path = ./.;
+      templates.flk.description = "flk template";
+    }
+  ;
+
 }

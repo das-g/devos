@@ -191,7 +191,7 @@ let
         channels =
           let
             default = {
-              nixpkgs = {
+              nixos = {
                 input = userFlakeNixOS;
               };
             };
