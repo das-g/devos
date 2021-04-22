@@ -37,7 +37,6 @@
             inherit deploy;
           };
           evalArgs = import  ./mkFlake/evalArgs.nix { lib = nixpkgs.lib // self; };
-          evalOldArgs = import  ./mkFlake/evalOldArgs.nix { lib = nixpkgs.lib // self; };
         };
 
         pkgs-lib = import ./pkgs-lib {

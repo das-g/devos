@@ -11,7 +11,7 @@ let
   userFlakeNixOS = nixos;
 
   cfg = (
-    lib.mkFlake.evalOldArgs
+    lib.mkFlake.evalArgs
       { inherit userFlakeSelf userFlakeInputs; }
       { inherit args; }
   ).config;
