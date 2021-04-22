@@ -8,7 +8,7 @@
         utils.follows = "utils";
       };
       devshell.url = "github:numtide/devshell";
-      utils.url = "github:numtide/flake-utils";
+      utils.url = "github:gytis-ivaskevicius/flake-utils-plus/staging";
       
     };
 
